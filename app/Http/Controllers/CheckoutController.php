@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
   use App\Models\Category;
 use App\Models\ShippingAddress;
+use App\Models\User;
+use App\Notifications\NewOrderNotification;
 class CheckoutController extends Controller
 {
 public function index()
@@ -158,35 +160,66 @@ public function showPaymentPage($order_id)
         }
 
         return view('checkout.cart', ['cart' => $cart]);
-    }
-public function process(Request $request, $shipping_id)
+    }public function process(Request $request, $shipping_id)
 {
-  $cart = session()->get('cart', []);
-$order_id = 'ORD-' . time();
+    $cart = session()->get('cart', []);
 
-foreach ($cart as $item) {
-    Order::create([
-        'order_id'    => $order_id,
-        'user_id'     => auth()->id() ?? 1,
-     'seller_id' => $item['seller_id'] ?? null,
-        'product_id'  => $item['id'],
-        'product_name'=> $item['name'],
-        'quantity'    => $item['quantity'],
-        'price'       => $item['sale_price'],
-        'total'       => $item['sale_price'] * $item['quantity'],
-        'name'        => auth()->user()->name ?? $request->name ?? 'Guest',
-        'email'       => auth()->user()->email ?? $request->email ?? 'guest@mail.com',
-        'phone'       => auth()->user()->phone ?? $request->phone ?? '0000000000',
-        'address'     => $request->address ?? '',
-        'shipping_id' => $shipping_id,
-        'payment_method' => 'cod',
-        'payment_status' => 'pending',
-        'status'        => 'ordered',
-       
-    ]);
-}
+    if (empty($cart)) {
+        return redirect()->route('cart.index')->with('error', 'Cart is empty!');
+    }
 
-session()->forget('cart');
+    $order_id = 'ORD-' . time();
+
+    // Use transaction to avoid partial order
+    DB::transaction(function() use ($cart, $order_id, $shipping_id, $request) {
+        foreach ($cart as $item) {
+            $product = Product::find($item['id']);
+
+            if (!$product) {
+                throw new \Exception("Product not found: {$item['name']}");
+            }
+
+            // Check stock
+            if ($product->stock < $item['quantity']) {
+                throw new \Exception("Not enough stock for {$product->name}. Available: {$product->stock}");
+            }
+
+            // Decrement stock
+            $product->decrement('stock', $item['quantity']);
+
+            // Create order item
+            $order = Order::create([
+                'order_id'    => $order_id,
+                'user_id'     => auth()->id() ?? 1,
+                'seller_id'   => $item['seller_id'] ?? null,
+                'product_id'  => $item['id'],
+                'product_name'=> $item['name'],
+                'quantity'    => $item['quantity'],
+                'price'       => $item['sale_price'],
+                'total'       => $item['sale_price'] * $item['quantity'],
+                'name'        => auth()->user()->name ?? $request->name ?? 'Guest',
+                'email'       => auth()->user()->email ?? $request->email ?? 'guest@mail.com',
+                'phone'       => auth()->user()->phone ?? $request->phone ?? '0000000000',
+                'address'     => $request->address ?? '',
+                'shipping_id' => $shipping_id,
+                'payment_method' => 'cod',
+                'payment_status' => 'pending',
+                'status'        => 'ordered',
+            ]);
+
+            // Notify the seller after order is created
+            if ($order->seller_id) {
+                $seller = User::find($order->seller_id); // Must be a User instance
+                if ($seller) {
+                    $seller->notify(new NewOrderNotification($order));
+                }
+            }
+        }
+    });
+
+    // Clear the cart
+    session()->forget('cart');
+
     return redirect()->route('orders.index')->with('success', 'Order placed successfully!');
 }
 public function paymentPage($shipping_id)

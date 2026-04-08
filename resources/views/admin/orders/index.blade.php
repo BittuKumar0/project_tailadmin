@@ -10,14 +10,7 @@
                 <i class="fas fa-shipping-fast me-1 text-emerald-500"></i> Farm-to-Table Order Management
             </p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-white border rounded-pill px-3 fw-bold text-[11px] shadow-sm">
-                <i class="fas fa-filter me-1 text-muted"></i> Filter
-            </button>
-            <button class="btn btn-emerald-500 text-white rounded-pill px-4 fw-bold shadow-sm border-0 text-[11px]">
-                <i class="fas fa-plus me-1"></i> New Order
-            </button>
-        </div>
+    
     </div>
 
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mt-2">

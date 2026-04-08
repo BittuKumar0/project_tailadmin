@@ -179,7 +179,7 @@
                 <ul class="submenu" id="ecomSub">
                     <li><a href="{{ route('admin.products.index') }}" class="nav-link-admin py-2 small">All Products</a></li>
                     <li><a href="{{ route('admin.products.create') }}" class="nav-link-admin py-2 small">Add Product</a></li>
-                     <!-- <li><a href="{{ route('admin.categories.index') }}" class="nav-link-admin py-2 small">Categories</a></li> -->
+                    
                     <li><a href="{{ route('admin.orders.index') }}" class="nav-link-admin py-2 small">Orders</a></li>
                 </ul>
             </div>

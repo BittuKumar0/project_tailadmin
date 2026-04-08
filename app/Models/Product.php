@@ -27,7 +27,8 @@ class Product extends Model
         return $this->belongsTo(User::class, 'seller_id');
     }
 
-    // ✅ Check if on sale
+
+  
     public function getIsOnSaleAttribute()
     {
         return $this->regular_price > $this->sale_price;

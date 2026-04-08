@@ -1,137 +1,147 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="profile-container">
-    <h1>Edit Profile</h1>
+@section('title', 'Edit Profile - EasyFarming')
 
-    <!-- Success Message -->
-    @if(session('status'))
-        <div class="alert-success">
-            {{ session('status') }}
-        </div>
-    @endif
-
-    <form action="{{ route('profile.update') }}" method="POST" class="profile-form">
-        @csrf
-        @method('PATCH')
-
-        <!-- Name Field -->
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input
-                type="text"
-                name="name"
-                id="name"
-                value="{{ old('name', $user->name) }}"
-                placeholder="Enter your name"
-            >
-            @error('name')
-                <span class="error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Email Field -->
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input
-                type="email"
-                name="email"
-                id="email"
-                value="{{ old('email', $user->email) }}"
-                placeholder="Enter your email"
-            >
-            @error('email')
-                <span class="error">{{ $message }}</span>
-            @enderror
-        </div>
-
-        <!-- Submit Button -->
-        <div class="form-group">
-            <button type="submit" class="btn-submit">Update Profile</button>
-        </div>
-    </form>
-</div>
-
+@push('styles')
 <style>
-/* Container */
-.profile-container {
-    max-width: 450px;
-    margin: 50px auto;
-    padding: 30px;
-    background: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    font-family: Arial, sans-serif;
-}
-
-/* Heading */
-.profile-container h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-/* Success Message */
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 12px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    border: 1px solid #c3e6cb;
-}
-
-/* Form Fields */
-.profile-form .form-group {
-    margin-bottom: 15px;
-}
-
-.profile-form label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #555;
-}
-
-.profile-form input[type="text"],
-.profile-form input[type="email"] {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    transition: border-color 0.3s;
-}
-
-.profile-form input[type="text"]:focus,
-.profile-form input[type="email"]:focus {
-    border-color: #007bff;
-    outline: none;
-}
-
-/* Error Message */
-.error {
-    display: block;
-    margin-top: 5px;
-    color: #dc3545;
-    font-size: 13px;
-}
-
-/* Submit Button */
-.btn-submit {
-    width: 100%;
-    padding: 12px;
-    background-color: #007bff;
-    color: #fff;
-    font-weight: bold;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.btn-submit:hover {
-    background-color: #0056b3;
-}
+    .profile-card {
+        border: none;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+    }
+    .profile-avatar-circle {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        font-size: 2.5rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+    }
+    .form-label {
+        font-weight: 600;
+        color: #555;
+        margin-left: 5px;
+    }
+    .custom-input {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 1px solid #e0e0e0;
+        background-color: #fcfcfc;
+        transition: all 0.3s ease;
+    }
+    .custom-input:focus {
+        background-color: #fff;
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.1);
+    }
+    .btn-update {
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    .btn-update:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
 </style>
+@endpush
+
+@section('content')
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            
+            <div class="card profile-card p-4">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="profile-avatar-circle">
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                        </div>
+                        <h3 class="fw-bold text-dark">Personal Info</h3>
+                        <p class="text-muted small">Apne profile details yahan se update karein</p>
+                    </div>
+
+                    @if(session('status'))
+                        <div class="alert alert-success alert-dismissible fade show border-0 rounded-3 shadow-sm mb-4" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> {{ session('status') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('profile.update') }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px;">
+                                    <i class="far fa-user text-muted"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    id="name"
+                                    class="form-control custom-input border-start-0 @error('name') is-invalid @enderror"
+                                    value="{{ old('name', $user->name) }}"
+                                    placeholder="Enter your name"
+                                    style="border-radius: 0 12px 12px 0;"
+                                >
+                            </div>
+                            @error('name')
+                                <div class="invalid-feedback d-block mt-2 ms-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="email" class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px;">
+                                    <i class="far fa-envelope text-muted"></i>
+                                </span>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    id="email"
+                                    class="form-control custom-input border-start-0 @error('email') is-invalid @enderror"
+                                    value="{{ old('email', $user->email) }}"
+                                    placeholder="Enter your email"
+                                    style="border-radius: 0 12px 12px 0;"
+                                >
+                            </div>
+                            @error('email')
+                                <div class="invalid-feedback d-block mt-2 ms-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="d-grid gap-2 mt-2">
+                            <button type="submit" class="btn btn-success btn-update shadow-sm">
+                                <i class="fas fa-sync-alt me-2"></i> Save Changes
+                            </button>
+                            <a href="{{ route('home') }}" class="btn btn-link text-muted text-decoration-none btn-sm mt-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    Password badalna chahte hain? 
+                    <a href="{{ route('profile.password-update') }}" class="text-success fw-bold text-decoration-none">Change Password</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

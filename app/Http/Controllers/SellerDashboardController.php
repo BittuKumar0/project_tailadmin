@@ -18,12 +18,29 @@ class SellerDashboardController extends Controller
 
 
     // Seller Dashboard
-   public function index()
+ public function index()
     {
-        return view('seller.dashboard');
-    }
+        $user = Auth::user(); // logged-in seller
 
-    // Profile Page
+        // Fetch last 5 orders
+        $orders = Order::where('seller_id', $user->id)
+                        ->orderBy('created_at', 'desc')
+                        ->limit(2)
+                        ->get();
+
+        // Fetch all notifications (or only unread)
+        $notifications = $user->notifications; 
+        // $notifications = $user->unreadNotifications;
+
+        // Dashboard stats
+        $data = [
+            'total_sales'     => $orders->sum('total_amount'),
+            'total_orders'    => Order::where('seller_id', $user->id)->count(),
+            'total_products'  => Product::where('seller_id', $user->id)->count(),
+        ];
+
+        return view('seller.dashboard', compact('orders', 'notifications', 'data'));
+    } // Profile Page
     public function profile()
     {
         $user = auth()->user();

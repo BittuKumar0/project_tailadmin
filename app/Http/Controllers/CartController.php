@@ -87,4 +87,39 @@ public function remove($id)
 
         return response()->json(['success' => false, 'message' => 'Stock exceeded!'], 422);
     }
+    public function updateCart(Request $request, $id)
+{
+    $cart = session()->get('cart', []);
+    $change = $request->change;
+
+    if(isset($cart[$id])) {
+        $newQty = $cart[$id]['quantity'] + $change;
+
+        // Stock check (Optional par zaroori)
+        $product = \App\Models\Product::find($id);
+        if ($newQty > $product->stock) {
+            return response()->json(['success' => false, 'message' => 'Not enough stock!']);
+        }
+
+        if($newQty >= 1) {
+            $cart[$id]['quantity'] = $newQty;
+            session()->put('cart', $cart);
+
+            // Naya Total calculate karein
+            $totalAmount = 0;
+            foreach($cart as $item) {
+                $totalAmount += $item['sale_price'] * $item['quantity'];
+            }
+
+            return response()->json([
+                'success' => true,
+                'quantity' => $newQty,
+                'itemTotal' => $cart[$id]['sale_price'] * $newQty,
+                'total' => $totalAmount
+            ]);
+        }
+    }
+
+    return response()->json(['success' => false]);
+}
 }

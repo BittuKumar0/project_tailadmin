@@ -27,24 +27,29 @@ public function update(Request $request)
 
     return redirect()->route('profile.edit')->with('status', 'Profile updated!');
 }
-    public function updatePassword(Request $request)
-    {
-        $user = $request->user();
+  
 
-        $request->validate([
-            'current_password' => 'required',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+public function updatePassword(Request $request)
+{
+    $request->validate([
+        'current_password' => 'required',
+        'password' => 'required|min:6|confirmed',
+    ]);
 
-        // Check if current password matches
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Current password does not match']);
-        }
+    $user = auth()->user();
 
-        // Update password
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return redirect()->route('profile.edit')->with('status_password', 'Password updated!');
+    if (!Hash::check($request->current_password, $user->password)) {
+        return back()->with('error', 'Current password is incorrect');
     }
+
+    $user->update([
+        'password' => Hash::make($request->password)
+    ]);
+
+    return back()->with('success', 'Password updated successfully');
+}
+    public function editPassword()
+{
+    return view('profile.password_update');
+}
 }

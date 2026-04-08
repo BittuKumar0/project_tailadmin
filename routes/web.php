@@ -12,7 +12,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SellerDashboardController;
 use App\Http\Controllers\StripeController;
-
+use App\Http\Controllers\SellerOrderController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\Admin\ReportController;
@@ -61,6 +61,8 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
 
     Route::get('/customer/orders', [OrderController::class, 'customerOrders'])->name('customer.orders');
+    Route::get('/orders/{id}', [OrderController::class, 'show'])
+    ->name('orders.show');
 
 Route::get('/checkout/shipping', [ShippingController::class, 'showForm'])->name('checkout.shipping');
 Route::post('/checkout/shipping', [ShippingController::class, 'store'])->name('checkout.shipping.store');
@@ -75,7 +77,7 @@ Route::post('/checkout/shipping', [ShippingController::class, 'store'])->name('c
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
 });
 
- 
+ Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
 // Seller
 Route::get('/seller/profile', [ProfileController::class, 'edit']);
 
@@ -85,11 +87,14 @@ Route::get('/buyer/profile', [ProfileController::class, 'edit']);
 Route::get('/profile/password-update', [ProfileController::class, 'editPassword'])->name('profile.password-edit');
 
 // Password Save karne ke liye (POST) - Jo pehle se hai
-Route::post('/profile/password-update', [ProfileController::class, 'updatePassword'])->name('profile.password-update');
+Route::post('/profile/password-update', [ProfileController::class, 'updatePassword'])
+    ->name('profile.password-update');
 Route::delete('seller/products/{id}/delete-image', [ProductController::class, 'deleteImage'])
     ->name('seller.products.deleteImage');
 /* Stripe*/
-
+// Order success page
+// Route::get('/orders/success', [App\Http\Controllers\OrderController::class, 'success']) ->name('orders.success')
+//      ->middleware('auth');
 Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
 
 Route::middleware('auth')->group(function () {
@@ -102,7 +107,9 @@ Route::get('/stripe/success', [StripeController::class, 'handleSuccess'])->name(
 });
 
 /*Orders*/
-
+Route::get('/customer/orders', [OrderController::class, 'customerOrders'])
+    ->name('customer.orders')
+    ->middleware('auth');
 Route::middleware('auth')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 });
@@ -138,6 +145,7 @@ Route::resource('products', \App\Http\Controllers\Admin\ProductController::class
 
 /*Seller Routes*/
 
+Route::post('/cart/update/{id}', [CartController::class, 'updateCart'])->name('cart.update');           
 Route::prefix('seller')->name('seller.')->middleware(['auth', 'role:seller'])->group(function () {
     
     // Dashboard Routes
@@ -162,7 +170,6 @@ Route::get('/category/{id}', [ProductController::class, 'showByCategory'])->name
 
 
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
-
 
 
 
@@ -209,7 +216,15 @@ Route::prefix('user')
     ->group(function () {
         Route::get('/home', [UserController::class, 'index'])->name('home');
     });
+Route::get('/notification/read/{id}', function ($id) {
+    $notification = auth()->user()->notifications()->find($id);
 
+    if ($notification) {
+        $notification->markAsRead();
+    }
+
+    return back();
+})->name('notification.read');
 /*Profile*/
 
 Route::middleware('auth')->group(function () {

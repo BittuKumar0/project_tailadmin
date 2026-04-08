@@ -4,134 +4,175 @@
 @section('content')
 <div class="container py-5">
     <div class="row g-4">
-        {{-- Left Side: Cart Items --}}
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white py-3 border-0">
-                    <h4 class="fw-bold mb-0">Shopping Cart ({{ count($cart) }} Items)</h4>
+                <div class="card-header bg-white py-3 border-bottom-0">
+                    <h4 class="fw-bold mb-0 text-dark">Shopping Cart ({{ count($cart) }} Items)</h4>
                 </div>
-      
+
                 <div class="card-body p-0">
-                    @if(empty($cart))
-                        <div class="text-center py-5">
-                            <img src="https://cdn-icons-png.flaticon.com/512/11329/11329073.png" alt="Empty Cart" style="width: 120px; opacity: 0.5;">
-                            <h5 class="mt-3 text-muted">Aapka cart khali hai!</h5>
-                            <a href="{{ url('/') }}" class="btn btn-success rounded-pill px-4 mt-2">Shop Now</a>
-                        </div>
-                    @else
-                        @foreach($cart as $id => $item)
-                        @php 
-                            $stock = $item['stock'] ?? 0; 
-                            
-                            // 🛑 IMAGE FIX LOGIC START
-                            $imgData = $item['image'];
-                            // Agar string hai toh decode karke array banayein
-                            $images = is_string($imgData) ? json_decode($imgData, true) : $imgData;
-                            
-                            // Pehli image nikaalein, agar kuch na mile toh default lagayein
-                            if (is_array($images) && count($images) > 0) {
-                                $displayImg = $images[0];
-                            } else {
-                                $displayImg = is_string($imgData) ? $imgData : 'default.jpg';
-                            }
-                            // 🛑 IMAGE FIX LOGIC END
-                        @endphp
+                    @forelse($cart as $id => $item)
+                    @php 
+                        // Image decoding logic
+                        $images = is_string($item['image']) ? json_decode($item['image'], true) : $item['image'];
+                        $displayImg = is_array($images) && count($images) ? $images[0] : 'default.jpg';
+                    @endphp
 
-                        <div class="p-3 border-bottom cart-item-row">
-                            <div class="row align-items-center">
-                                {{-- Product Image --}}
-                                <div class="col-3 col-md-2 text-center">
-                                    <img src="{{ asset('storage/products/' . $displayImg) }}" 
-                                         alt="{{ $item['name'] }}" 
-                                         class="img-fluid rounded-3 border" 
-                                         style="height: 80px; width: 80px; object-fit: cover;"
-                                         onerror="this.onerror=null; this.src='https://via.placeholder.com/80?text=No+Image';">
-                                </div>
+                    <div class="p-4 border-bottom item-row" id="item-row-{{ $id }}">
+                        <div class="row align-items-center">
+                            <div class="col-3 col-md-2 text-center">
+                                <img src="{{ asset('storage/products/' . $displayImg) }}"
+                                     class="img-fluid rounded-3 shadow-sm"
+                                     style="height:85px; width:85px; object-fit:cover;"
+                                     onerror="this.src='{{ asset('images/no-image.png') }}'">
+                            </div>
 
-                                {{-- Details --}}
-                                <div class="col-9 col-md-4">
-                                    <h6 class="fw-bold mb-1">{{ Str::limit($item['name'], 50) }}</h6>
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="h6 fw-bold text-success mb-0">₹{{ number_format($item['sale_price'], 0) }}</span>
-                                        @if(isset($item['regular_price']) && $item['regular_price'] > $item['sale_price'])
-                                            <small class="text-muted text-decoration-line-through">₹{{ number_format($item['regular_price'], 0) }}</small>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        @if($stock > 0)
-                                            <span class="badge bg-success-subtle text-success border border-success px-2 py-1 small">
-                                                <i class="fas fa-check-circle me-1"></i> In Stock
-                                            </span>
-                                        @else
-                                            <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 small">
-                                                <i class="fas fa-times-circle me-1"></i> Out of Stock
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
+                            <div class="col-9 col-md-4">
+                                <h6 class="fw-bold mb-1 text-truncate">{{ $item['name'] }}</h6>
+                                <span class="text-success fw-bold fs-5">₹{{ number_format($item['sale_price']) }}</span>
+                            </div>
 
-                                {{-- Quantity Control --}}
-                                <div class="col-6 col-md-3 mt-3 mt-md-0">
-                                    <div class="input-group input-group-sm quantity-box" style="width: 110px;">
-                                        <a href="{{ url('/cart/update-qty/'.$id.'/-1') }}" class="btn btn-outline-secondary">-</a>
-                                        <input type="text" value="{{ $item['quantity'] }}" readonly class="form-control text-center fw-bold bg-white">
-                                        <a href="{{ url('/cart/update-qty/'.$id.'/1') }}" class="btn btn-outline-secondary">+</a>
-                                    </div>
-                                </div>
+                            <div class="col-6 col-md-3 mt-3 mt-md-0">
+                                <div class="d-flex align-items-center border rounded-pill px-2 py-1 bg-light shadow-xs" style="width: fit-content;">
+                                    <button type="button" class="btn btn-sm btn-white rounded-circle shadow-sm btn-qty" 
+                                            onclick="updateCart('{{ $id }}', -1)">
+                                        <i class="fas fa-minus small"></i>
+                                    </button>
 
-                                {{-- Price & Remove --}}
-                                <div class="col-6 col-md-3 text-end mt-3 mt-md-0">
-                                    <div class="h6 fw-bold mb-1 text-dark">₹{{ number_format($item['sale_price'] * $item['quantity'], 0) }}</div>
-                                    <form action="{{ route('cart.remove', $id) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-link text-danger text-decoration-none p-0 small">
-                                            <i class="fas fa-trash-alt"></i> Remove
-                                        </button>
-                                    </form>
+                                    <span id="qty-{{ $id }}" class="mx-3 fw-bold text-dark fs-6">
+                                        {{ $item['quantity'] }}
+                                    </span>
+
+                                    <button type="button" class="btn btn-sm btn-white rounded-circle shadow-sm btn-qty" 
+                                            onclick="updateCart('{{ $id }}', 1)">
+                                        <i class="fas fa-plus small"></i>
+                                    </button>
                                 </div>
                             </div>
+
+                            <div class="col-6 col-md-3 text-end mt-3 mt-md-0">
+                                <div class="fw-bold fs-5 text-dark mb-1" id="price-{{ $id }}">
+                                    ₹{{ number_format($item['sale_price'] * $item['quantity']) }}
+                                </div>
+
+                                <form action="{{ route('cart.remove', $id) }}" method="POST">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-link text-danger p-0 small text-decoration-none hover-underline">
+                                        <i class="fas fa-trash-alt me-1"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        @endforeach
-                    @endif
+                    </div>
+                    @empty
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-shopping-basket fa-4x text-light"></i>
+                            </div>
+                            <h4 class="text-muted">Aapka cart khali hai!</h4>
+                            <p class="text-secondary small">Shuruat karein hamare taaza products ke saath.</p>
+                            <a href="{{ url('/') }}" class="btn btn-success rounded-pill px-5 mt-3 shadow-sm">
+                                Start Shopping
+                            </a>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
 
-        {{-- Right Side: Order Summary --}}
-        @if(!empty($cart))
+        @if(count($cart) > 0)
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px;">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-4">Price Details</h5>
-                    <div class="d-flex justify-content-between mb-3 text-muted">
-                        <span>Price ({{ count($cart) }} Items)</span>
-                        <span>₹{{ number_format($totalAmount, 0) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3 text-muted">
-                        <span>Delivery Charges</span>
-                        <span class="text-success fw-bold">FREE</span>
-                    </div>
-                    <hr class="my-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">Total Amount</h5>
-                        <h4 class="fw-bold text-success mb-0">₹{{ number_format($totalAmount, 0) }}</h4>
-                    </div>
+            <div class="card p-4 shadow-sm border-0 rounded-4 sticky-top" style="top: 100px;">
+                <h5 class="fw-bold mb-4">Order Summary</h5>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Subtotal</span>
+                    <span class="fw-bold">₹<span id="subTotal">{{ number_format($totalAmount) }}</span></span>
+                </div>
 
-                    <a href="{{ route('checkout.shipping') }}" class="btn btn-success btn-lg w-100 rounded-pill py-3 fw-bold shadow">
-                        Proceed to Checkout <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
+                <div class="d-flex justify-content-between mb-3 small">
+                    <span class="text-muted">Delivery Charges</span>
+                    <span class="text-success">FREE</span>
+                </div>
+
+                <hr class="text-muted opacity-25">
+
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="h5 fw-bold text-dark">Total Amount</span>
+                    <span class="h5 fw-bold text-success">₹<span id="totalAmount">{{ number_format($totalAmount) }}</span></span>
+                </div>
+
+                <a href="{{ route('checkout.shipping') }}" class="btn btn-success btn-lg w-100 rounded-pill shadow fw-bold py-3">
+                   Proceed to Checkout <i class="fas fa-arrow-right ms-2 small"></i>
+                </a>
+
+                <div class="mt-4 text-center">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" height="15" class="mx-2 opacity-50" alt="paypal">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg" height="15" class="mx-2 opacity-50" alt="mastercard">
                 </div>
             </div>
         </div>
         @endif
     </div>
 </div>
-
-<style>
-    .cart-item-row:hover { background-color: #f8f9fa; }
-    .bg-success-subtle { background-color: #e2f3ea !important; }
-    .bg-danger-subtle { background-color: #fce8e8 !important; }
-    .quantity-box .btn { border-color: #dee2e6; }
-</style>
 @endsection
+
+@push('scripts')
+<script>
+function updateCart(id, change) {
+    const qtySpan = document.getElementById('qty-' + id);
+    let currentQty = parseInt(qtySpan.innerText);
+    
+    // Safety check
+    if (currentQty + change < 1) return;
+
+    // Loading State
+    const buttons = document.querySelectorAll('.btn-qty');
+    buttons.forEach(btn => btn.disabled = true);
+
+    fetch(`/cart/update/${id}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ change: change })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            // Smoothly update UI
+            qtySpan.innerText = data.quantity;
+            document.getElementById('price-' + id).innerText = '₹' + data.itemTotal.toLocaleString();
+            
+            // Global totals update
+            const totalElements = ['totalAmount', 'subTotal'];
+            totalElements.forEach(elId => {
+                const el = document.getElementById(elId);
+                if(el) el.innerText = data.total.toLocaleString();
+            });
+        } else {
+            alert(data.message || "Stock limit reached!");
+        }
+    })
+    .catch(err => {
+        console.error("Cart error:", err);
+    })
+    .finally(() => {
+        // Re-enable buttons
+        buttons.forEach(btn => btn.disabled = false);
+    });
+}
+</script>
+@endpush
+
+@push('styles')
+<style>
+    .shadow-xs { box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .btn-white { background: #fff; border: 1px solid #eee; }
+    .item-row { transition: background 0.3s ease; }
+    .item-row:hover { background-color: #fafafa; }
+    .btn-qty:disabled { opacity: 0.6; cursor: not-allowed; }
+</style>
+@endpush
