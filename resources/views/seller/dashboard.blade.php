@@ -61,17 +61,22 @@ $notifications = auth()->user()->notifications()->latest()->take(2)->get();
 @endif
 
     <div class="row g-4 mb-5">
-        <div class="col-xl-3 col-md-6">
-            <div class="card stat-card text-white shadow-sm border-0">
-                <div class="card-body d-flex align-items-center">
-                    <div class="flex-shrink-0"><i class="fas fa-rupee-sign fa-2x opacity-75"></i></div>
-                    <div class="flex-grow-1 ms-3">
-                        <h5 class="card-title mb-0">₹{{ number_format($data['total_sales'], 2) }}</h5>
-                        <small class="opacity-75">Total Revenue</small>
-                    </div>
-                </div>
+
+   <div class="col-xl-3 col-md-6">
+    <div class="card stat-card text-white shadow-sm border-0" style="background: linear-gradient(45deg, #1e3c72, #2a5298);">
+        <div class="card-body d-flex align-items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-rupee-sign fa-2x opacity-75"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h5 class="card-title mb-0">
+                    ₹{{ number_format($data['total_sales'], 2) }}
+                </h5>
+                <small class="opacity-75">Total Revenue</small>
             </div>
         </div>
+    </div>
+</div>
 
         <div class="col-xl-3 col-md-6">
             <div class="card stat-card text-white shadow-sm border-0" style="background: linear-gradient(135deg, #dc3545, #fd7e14);">

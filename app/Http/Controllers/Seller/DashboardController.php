@@ -1,39 +1,48 @@
 <?php
 
 namespace App\Http\Controllers\Seller;
-use Illuminate\Support\Facades\DB; // 
+
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Order;
 use App\Models\Product;
-use App\Models\OrderItem; // Ensure this exists
+use App\Models\OrderItem;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $sellerId = auth()->id();
+        $user = Auth::user();
+        $sellerId = $user->id;
         
-        // Stats fix: Sum only the items belonging to THIS seller
+        // 1. Stats calculation
         $data = [
-            'total_sales'    => OrderItem::where('seller_id', $sellerId)->sum(DB::raw('price * quantity')),
-            'total_orders'   => OrderItem::where('seller_id', $sellerId)->distinct('order_id')->count(),
+            'total_sales'    => OrderItem::where('seller_id', $sellerId)
+                                    ->sum(DB::raw('price * quantity')) ?? 0,
+
+            'total_orders'   => OrderItem::where('seller_id', $sellerId)
+                                    ->distinct('order_id')
+                                    ->count('order_id'),
+
             'total_products' => Product::where('seller_id', $sellerId)->count(),
+
             'recent_orders'  => OrderItem::where('seller_id', $sellerId)
-                                ->with('order.user')
-                                ->latest()
-                                ->take(5)
-                                ->get(),
+                                    ->with(['order.user', 'product'])
+                                    ->latest()
+                                    ->take(5)
+                                    ->get(),
         ];
 
-        return view('seller.dashboard', compact('data'));
+        // 2. Notifications Logic
+        $notifications = $user->notifications()->latest()->take(5)->get();
+
+        return view('seller.dashboard', compact('data', 'notifications'));
     }
 
     public function sellerOrders()
     {
-        $sellerId = auth()->id();
+        $sellerId = Auth::id();
         
-        // Order Items ke through fetch karein taaki data accurate ho
         $orders = OrderItem::with(['order.user', 'product'])
             ->where('seller_id', $sellerId)
             ->latest()
@@ -41,13 +50,4 @@ class DashboardController extends Controller
 
         return view('seller.orders.index', compact('orders'));
     }
-    public function dashboard()
-{
-    $user = auth()->user();
-
-    $notifications = $user->unreadNotifications; // unread
-    $allNotifications = $user->notifications; // all
-
-    return view('seller.dashboard', compact('notifications', 'allNotifications'));
-}
 }

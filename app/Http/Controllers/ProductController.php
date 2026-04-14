@@ -50,7 +50,16 @@ public function categoryProducts($category_id)
 //         $brands = Brand::all(); // send brands to the form
 //         return view('seller.products.create', compact('brands'));
 //     }
-
+// ProductController.php
+public function search(Request $request) {
+    $query = $request->query('query');
+    $products = Product::where('name', 'like', "%$query%")->paginate(12);
+    
+    // Ye line add karne se error chala jayega
+    $categories = \App\Models\Category::all(); 
+    
+    return view('products.index', compact('products', 'query', 'categories'));
+}
 public function store(Request $request)
 {
     $request->validate([

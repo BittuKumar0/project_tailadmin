@@ -1,42 +1,225 @@
 <!-- resources/views/partials/header.blade.php -->
- 
+ <style>
+ /* Container focus effect */
+.search-container {
+    transition: all 0.3s ease;
+}
+
+/* Modern Pill Shape & Border Fix */
+.modern-search-bar {
+    border-radius: 40px;
+    overflow: hidden; /* This ensures the corners stay rounded */
+    border: 1px solid #28a745;
+    background-color: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Removing individual borders from group items to use the container border */
+.modern-search-bar .input-group-text,
+.modern-search-bar .form-control,
+.modern-search-bar .btn {
+    border: none !important;
+}
+
+/* Input text styling */
+.modern-search-bar .form-control {
+    font-size: 0.95rem;
+    height: 45px;
+    color: #333;
+}
+
+.modern-search-bar .form-control::placeholder {
+    color: #aaa;
+    font-weight: 400;
+}
+
+/* Search Button Styling */
+.modern-search-bar .btn-success {
+    background-color: #28a745;
+    color: #fff;
+    letter-spacing: 0.5px;
+    padding-left: 25px;
+    padding-right: 25px;
+    transition: background 0.2s ease;
+}
+
+.modern-search-bar .btn-success:hover {
+    background-color: #218838;
+}
+
+/* Active/Focus State for the whole bar */
+.search-container:focus-within .modern-search-bar {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 576px) {
+    .modern-search-bar .btn-success {
+        padding-left: 15px;
+        padding-right: 15px;
+        font-size: 0.85rem;
+    }
+}
+
+
+
+/* Main Button Design */
+.btn-seller-nav {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #1a202c;
+    border-radius: 50px;
+    padding: 6px 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-seller-nav:hover, .btn-seller-nav:focus {
+    background-color: #f8fafc;
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.btn-seller-nav i.fa-store {
+    color: #28a745;
+    font-size: 1.1rem;
+}
+
+/* Dropdown Menu Customization */
+.seller-dropdown-custom {
+    min-width: 220px;
+    border-radius: 12px;
+    padding: 8px;
+    animation: fadeInDown 0.3s ease;
+}
+
+.seller-dropdown-custom .dropdown-item {
+    border-radius: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    transition: all 0.2s;
+}
+
+.seller-dropdown-custom .dropdown-item:hover {
+    background-color: #f0fff4;
+    color: #2f855a;
+    transform: translateX(5px);
+}
+
+/* Icon Box inside Dropdown */
+.icon-box {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Soft Colors for Icons */
+.bg-soft-success { background: #e6fffa; color: #38a169; }
+.bg-soft-primary { background: #ebf8ff; color: #3182ce; }
+.bg-soft-warning { background: #fffaf0; color: #dd6b20; }
+.bg-soft-danger  { background: #fff5f5; color: #e53e3e; }
+
+/* Entry Animation */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header styling */
+.dropdown-header {
+    letter-spacing: 1px;
+    padding-bottom: 8px;
+}
+
+</style>
 <header class="bg-white shadow-sm sticky top-0 z-50">
 
     <!-- Top Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
         <div class="container">
 
-            @auth
-                @if(Auth::user()->role === 'seller')
-                    <div class="position-relative me-3 seller-menu-wrapper">
-                        <button id="sellerMenuBtn" class="btn btn-outline-success d-flex align-items-center">
-                            <i class="fas fa-bars me-1 seller-icon"></i> 
-                        </button>
+          @auth
+    @if(Auth::user()->role === 'seller')
+        <div class="dropdown me-3 seller-menu-wrapper">
+            <button class="btn btn-seller-nav d-flex align-items-center shadow-sm" 
+                    type="button" 
+                    id="sellerMenuBtn" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false">
+                <i class="fa fa-bars"></i>
+         
+              
+            </button>
 
-                        <!-- Dropdown aligned to right -->
-                        <ul id="sellerDropdown" class="dropdown-menu shadow-lg border-0 position-absolute end-0 mt-2 p-0">
-                            <li><a class="dropdown-item d-flex align-items-center" href="{{ route('seller.dashboard') }}">
-                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                            </a></li>
-                            <li><a class="dropdown-item d-flex align-items-center" href="{{ route('seller.products.index') }}">
-                                <i class="fas fa-box me-2"></i>My Products
-                            </a></li>
-                            <li><a class="dropdown-item d-flex align-items-center" href="{{ route('seller.orders.index') }}">
-                                <i class="fas fa-shopping-bag me-2"></i>Orders
-                            </a></li>
-                        </ul>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 seller-dropdown-custom" aria-labelledby="sellerMenuBtn">
+                <li class="dropdown-header text-uppercase small fw-bold text-muted border-bottom mb-1">Manage Store</li>
+                
+                <li><a class="dropdown-item py-2" href="{{ route('seller.dashboard') }}">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-soft-success me-3"><i class="fas fa-chart-line"></i></div>
+                        <span>Dashboard</span>
                     </div>
-                @endif
-            @endauth
+                </a></li>
+                
+                <li><a class="dropdown-item py-2" href="{{ route('seller.products.index') }}">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-soft-primary me-3"><i class="fas fa-boxes"></i></div>
+                        <span>My Products</span>
+                    </div>
+                </a></li>
+                
+                <li><a class="dropdown-item py-2" href="{{ route('seller.orders.index') }}">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-soft-warning me-3"><i class="fas fa-clipboard-list"></i></div>
+                        <span>Orders</span>
+                    </div>
+                </a></li>
+                
+             
+            </ul>
+        </div>
+    @endif
+@endauth
 
-            <a class="navbar-brand fw-bold text-success d-flex align-items-center" href="{{ url('/') }}">
-                <i class="fas fa-seedling me-2"></i>EasyFarming
-            </a>
+           <a class="navbar-brand fw-bold text-success d-flex align-items-center fs-2" href="{{ url('/') }}">
+    <i class="fas fa-seedling me-2"></i>EasyFarming
+</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+    <form action="{{ Route::has('products.search') ? route('products.search') : '#' }}" method="GET" class="mx-auto col-lg-5 col-md-6 px-2">
+    <div class="search-container">
+        <div class="input-group modern-search-bar-compact">
+            <span class="input-group-text bg-white border-success border-end-0 ps-3">
+                <i class="fas fa-search text-muted small"></i>
+            </span>
+            
+            <input 
+                type="text" 
+                name="query" 
+                class="form-control border-success border-start-0 border-end-0 shadow-none" 
+                placeholder="Search products..." 
+                value="{{ request('query') }}"
+                required
+            >
 
+            <button class="btn btn-success px-3 fw-bold" type="submit">
+                SEARCH
+            </button>
+        </div>
+    </div>
+</form>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
 

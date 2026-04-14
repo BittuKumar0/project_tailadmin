@@ -18,6 +18,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\Admin\ReportController;
 
 /*Public Routes*/
+Route::get('/search', [ProductController::class, 'search'])->name('products.search');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -163,8 +164,6 @@ Route::prefix('seller')->name('seller.')->middleware(['auth', 'role:seller'])->g
     Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
-
-
 
 Route::get('/category/{id}', [ProductController::class, 'showByCategory'])->name('category.show');
 
