@@ -27,7 +27,11 @@ protected $fillable = [
     'payment_status',    // varchar(50)
     'payment_method',    // varchar(50)
     'status',            // varchar(50)
-    'stripe_payment_id'  // varchar(255) - Stripe Transaction ID
+    'stripe_payment_id', // varchar(255) - Stripe Transaction ID
+    'courier_name',
+    'courier_phone',
+    'status',
+    'assigned_at',
 ];
 
 
@@ -73,26 +77,39 @@ public function reviews()
 {
     return $this->hasMany(ProductReview::class);
 }
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+   public function user()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
 
     // Relation to order items
     public function items()
     {
         return $this->hasMany(OrderItem::class);
     }
-
+// public function shippingAddress()
+// {
+//     // Ye tab kaam karega agar Order table mein user_id hai 
+//     // aur ShippingAddress table mein bhi user_id hai.
+//     return $this->hasOne(ShippingAddress::class, 'user_id', 'user_id');
+// }
+public function shippingAddress()
+{
+    return $this->belongsTo(\App\Models\ShippingAddress::class, 'shipping_id');
+}
+// public function user()
+// {
+//     return $this->belongsTo(\App\Models\User::class);
+// }
 // public function shipping()
 // {
     
 //     return $this->belongsTo(ShippingAddress::class, 'shipping_id');
 // }
-public function shippingAddress()
-{
-    return $this->belongsTo(ShippingAddress::class, 'shipping_id');
-}
+// public function shippingAddress()
+// {
+//     return $this->belongsTo(ShippingAddress::class, 'shipping_id');
+// }
   
 
 

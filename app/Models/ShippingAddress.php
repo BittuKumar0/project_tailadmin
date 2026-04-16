@@ -25,4 +25,8 @@ public function showForm()
 {
     return view('checkout.shipping');
 }
+public function user()
+{
+    return $this->belongsTo(\App\Models\User::class);
+}
 }

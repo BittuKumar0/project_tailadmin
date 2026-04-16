@@ -46,6 +46,9 @@ require __DIR__.'/auth.php';
 /*
  Dashboard Redirect*/
 
+
+// routes/web.php
+Route::post('/admin/orders/verify-otp', [OrderController::class, 'verifyOTP'])->name('admin.orders.verify-otp');
 Route::get('/dashboard', function () {
     $user = Auth::user();
 
@@ -230,4 +233,41 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+
+
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        // ✅ 1. Status Update Route (IMPORTANT: resource se pehle)
+        Route::patch('/orders/{id}/update-status', [OrderController::class, 'updateStatus'])
+            ->name('orders.update-status');
+
+        // ✅ 2. OTP Verification
+        Route::post('/orders/verify-otp', [OrderController::class, 'verifyOTP'])
+            ->name('orders.verify-otp');
+
+        // ✅ 3. Resource Route (recommended)
+        Route::resource('orders', OrderController::class);
+
+      
+    });
+
+Route::get('/customer/orders', [OrderController::class, 'customerOrders'])
+    ->name('customer.orders');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/orders/{id}/track', [OrderController::class, 'track'])
+        ->name('orders.track');
+});
+Route::post('/seller/orders/{id}/assign-courier',
+    [\App\Http\Controllers\Seller\OrderController::class, 'assignCourier']
+)->name('seller.orders.assign-courier');
+
+Route::middleware(['auth'])->group(function () {
+    // ... existing routes
+    Route::get('/my-orders/{id}/track', [App\Http\Controllers\OrderController::class, 'trackOrder'])->name('orders.track');
 });

@@ -57,7 +57,7 @@
                             <th class="ps-4">Order ID</th>
                             <th>Product Details</th>
                             <th>Customer & Contact</th>
-                            <th>Shipping Address</th>
+                
                             <th>Total Amount</th>
                             <th>Payment</th>
                             <th>Date</th>
